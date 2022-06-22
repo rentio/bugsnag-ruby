@@ -9,6 +9,7 @@ module Bugsnag
         # Attempts to deliver a payload to the given endpoint synchronously.
         def deliver(url, body, configuration, options={})
           begin
+            raise # wip
             response = request(url, body, configuration, options)
             configuration.debug("Request to #{url} completed, status: #{response.code}")
             if response.code[0] != "2"
