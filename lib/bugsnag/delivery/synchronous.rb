@@ -20,6 +20,9 @@ module Bugsnag
 
             configuration.error("Unable to send information to Bugsnag (#{url}), #{e.inspect}")
             configuration.error(e.backtrace)
+
+            # Rentio 拡張
+            log_unnotified_report(body, configuration)
           end
         end
 
@@ -60,6 +63,26 @@ module Bugsnag
             "Content-Type" => "application/json",
             "Bugsnag-Sent-At" => Time.now.utc.iso8601(3)
           }
+        end
+
+        # Rentio 拡張: 送信できなかった report をログに書き出す
+        def log_unnotified_report(body, configuration)
+          report = JSON.parse(body)
+
+          # 余分な情報を削る
+          report.delete("apiKey")
+          report["events"]&.each do |event|
+            event.delete("breadcrumbs")
+            event["exceptions"]&.each do |exception|
+              exception["stacktrace"]&.slice!(20..)
+              exception["stacktrace"]&.each do |stacktrace|
+                stacktrace.delete("code")
+              end
+            end
+          end
+
+          report["_log_type"] = "unnotified_report.bugsnag"
+          configuration.error(JSON.dump(report))
         end
       end
     end
