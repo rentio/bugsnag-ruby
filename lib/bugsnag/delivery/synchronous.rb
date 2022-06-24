@@ -81,7 +81,8 @@ module Bugsnag
             end
           end
 
-          configuration.error(JSON.dump({ "unnotifiedReport" => report }))
+          report["_log_type"] = "bugsnag.unnotified_report"
+          configuration.error(JSON.dump(report))
         end
       end
     end
